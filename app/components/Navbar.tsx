@@ -1,24 +1,29 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useState, useEffect } from "react";
 
 function Navbar() {
   const router = useRouter();
-  const pathname = usePathname();
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [role, setRole] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsLoggedIn(!!session);
-    });
+    const syncAuth = async () => {
+      const { data } = await supabase.auth.getUser();
+      setIsLoggedIn(!!data.user);
+      setRole(data.user?.user_metadata?.role ?? null);
+    };
+
+    syncAuth();
 
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setIsLoggedIn(!!session);
+        setRole(session?.user?.user_metadata?.role ?? null);
       },
     );
 
@@ -30,11 +35,12 @@ function Navbar() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setIsLoggedIn(false);
+    setRole(null);
     router.push("/");
   };
 
   // OSA Admin navbar
-  if (pathname?.startsWith("/osa")) {
+  if (role === "osa") {
     return (
       <header className="bg-blue-900 text-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
@@ -120,14 +126,14 @@ function Navbar() {
         {isLoggedIn ? (
           <button
             onClick={handleLogout}
-            className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-blue-900 transition hover:bg-yellow-400"
+            className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-blue-900 transition hover:bg-yellow-400 hover:cursor-pointer"
           >
             Log Out
           </button>
         ) : (
           <Link
             href="/login"
-            className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-blue-900 transition hover:bg-yellow-400"
+            className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-blue-900 transition hover:bg-yellow-400 hover:cursor-pointer"
           >
             Log In
           </Link>
