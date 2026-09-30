@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Navbar from "./components/Navbar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,7 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "SchoolLostFound",
-  description: "A modern school lost and found experience for tracking, identifying, and returning misplaced items.",
+  description:
+    "A modern school lost and found experience for tracking, identifying, and returning misplaced items.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -23,6 +25,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <Navbar />
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

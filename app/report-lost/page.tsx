@@ -24,7 +24,9 @@ export default function ReportLostPage() {
   });
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
   ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -79,33 +81,11 @@ export default function ReportLostPage() {
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100">
-      {/* HEADER */}
-      <header className="bg-blue-900 text-white">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-400 text-lg font-bold text-blue-900">
-              &#128270;
-            </div>
-            <span className="text-lg font-bold tracking-tight">School Lost &amp; Found</span>
-          </div>
-          <nav className="hidden items-center gap-6 text-sm md:flex">
-            <Link href="/" className="transition hover:text-yellow-300">Home</Link>
-            <Link href="/found-items" className="transition hover:text-yellow-300">Found Items</Link>
-            <Link href="/report-lost" className="transition hover:text-yellow-300">Report Lost</Link>
-            <Link href="/report-found" className="transition hover:text-yellow-300">Report Found</Link>
-          </nav>
-          <a
-            href="#"
-            className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-blue-900 transition hover:bg-yellow-400"
-          >
-            Login
-          </a>
-        </div>
-      </header>
-
       {/* PAGE TITLE */}
       <section className="mx-auto max-w-3xl px-6 pt-16 pb-8">
-        <h1 className="text-4xl font-black text-blue-400 md:text-5xl">Report Lost Item</h1>
+        <h1 className="text-4xl font-black text-blue-400 md:text-5xl">
+          Report Lost Item
+        </h1>
         <p className="mt-4 text-lg text-slate-300">
           Provide enough details so OSA can help identify a possible match.
         </p>
@@ -123,9 +103,12 @@ export default function ReportLostPage() {
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-yellow-400 text-3xl text-blue-900">
               &#10003;
             </div>
-            <h2 className="mt-4 text-2xl font-black text-blue-400">Report Submitted</h2>
+            <h2 className="mt-4 text-2xl font-black text-blue-400">
+              Report Submitted
+            </h2>
             <p className="mt-2 text-slate-300">
-              Your lost item report has been received. OSA will review it and update you soon.
+              Your lost item report has been received. OSA will review it and
+              update you soon.
             </p>
             <button
               onClick={() => setSubmitted(false)}
@@ -141,7 +124,10 @@ export default function ReportLostPage() {
           >
             {/* Item Name */}
             <div className="mb-6">
-              <label htmlFor="itemName" className="mb-2 block text-sm font-semibold text-slate-300">
+              <label
+                htmlFor="itemName"
+                className="mb-2 block text-sm font-semibold text-slate-300"
+              >
                 Item Name
               </label>
               <input
@@ -159,7 +145,10 @@ export default function ReportLostPage() {
             {/* Item Type and Color */}
             <div className="mb-6 grid gap-6 sm:grid-cols-2">
               <div>
-                <label htmlFor="itemType" className="mb-2 block text-sm font-semibold text-slate-300">
+                <label
+                  htmlFor="itemType"
+                  className="mb-2 block text-sm font-semibold text-slate-300"
+                >
                   Item Type
                 </label>
                 <select
@@ -179,7 +168,10 @@ export default function ReportLostPage() {
                 </select>
               </div>
               <div>
-                <label htmlFor="color" className="mb-2 block text-sm font-semibold text-slate-300">
+                <label
+                  htmlFor="color"
+                  className="mb-2 block text-sm font-semibold text-slate-300"
+                >
                   Color
                 </label>
                 <select
@@ -203,7 +195,10 @@ export default function ReportLostPage() {
 
             {/* Description */}
             <div className="mb-6">
-              <label htmlFor="description" className="mb-2 block text-sm font-semibold text-slate-300">
+              <label
+                htmlFor="description"
+                className="mb-2 block text-sm font-semibold text-slate-300"
+              >
                 Description
               </label>
               <textarea
@@ -221,7 +216,10 @@ export default function ReportLostPage() {
             {/* Location Lost and Date Lost */}
             <div className="mb-6 grid gap-6 sm:grid-cols-2">
               <div>
-                <label htmlFor="locationLost" className="mb-2 block text-sm font-semibold text-slate-300">
+                <label
+                  htmlFor="locationLost"
+                  className="mb-2 block text-sm font-semibold text-slate-300"
+                >
                   Location Lost
                 </label>
                 <select
@@ -243,7 +241,10 @@ export default function ReportLostPage() {
                 </select>
               </div>
               <div>
-                <label htmlFor="dateLost" className="mb-2 block text-sm font-semibold text-slate-300">
+                <label
+                  htmlFor="dateLost"
+                  className="mb-2 block text-sm font-semibold text-slate-300"
+                >
                   Date Lost
                 </label>
                 <input
@@ -262,7 +263,10 @@ export default function ReportLostPage() {
             {form.locationLost === "classroom" && (
               <div className="mb-6 grid gap-6 sm:grid-cols-2">
                 <div>
-                  <label htmlFor="floor" className="mb-2 block text-sm font-semibold text-slate-300">
+                  <label
+                    htmlFor="floor"
+                    className="mb-2 block text-sm font-semibold text-slate-300"
+                  >
                     Floor
                   </label>
                   <select
@@ -283,7 +287,10 @@ export default function ReportLostPage() {
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="room" className="mb-2 block text-sm font-semibold text-slate-300">
+                  <label
+                    htmlFor="room"
+                    className="mb-2 block text-sm font-semibold text-slate-300"
+                  >
                     Room
                   </label>
                   <input
@@ -320,7 +327,10 @@ export default function ReportLostPage() {
 
             {/* Photo Upload */}
             <div className="mb-8">
-              <label htmlFor="photo" className="mb-2 block text-sm font-semibold text-slate-300">
+              <label
+                htmlFor="photo"
+                className="mb-2 block text-sm font-semibold text-slate-300"
+              >
                 Photo (Optional)
               </label>
               <div
@@ -336,8 +346,12 @@ export default function ReportLostPage() {
                 ) : (
                   <div className="text-center">
                     <div className="text-4xl">&#128444;</div>
-                    <p className="mt-2 text-sm">Click to upload or drag and drop</p>
-                    <p className="text-xs text-slate-500">PNG, JPG up to 10MB</p>
+                    <p className="mt-2 text-sm">
+                      Click to upload or drag and drop
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      PNG, JPG up to 10MB
+                    </p>
                   </div>
                 )}
               </div>
@@ -364,8 +378,8 @@ export default function ReportLostPage() {
             <div className="mt-6 flex items-start gap-3 rounded-2xl border border-yellow-500/20 bg-yellow-500/5 p-4">
               <div className="flex-shrink-0 text-xl">&#8505;</div>
               <p className="text-sm text-slate-300">
-                Your report will be reviewed by OSA. Submitting a report does not guarantee that a
-                match will be found.
+                Your report will be reviewed by OSA. Submitting a report does
+                not guarantee that a match will be found.
               </p>
             </div>
           </form>
@@ -379,21 +393,45 @@ export default function ReportLostPage() {
             <div>
               <p className="text-lg font-bold">School Lost &amp; Found</p>
               <p className="mt-3 text-sm text-slate-400">
-                Helping students recover lost items and reunite them with their belongings.
+                Helping students recover lost items and reunite them with their
+                belongings.
               </p>
             </div>
             <div>
-              <p className="text-sm font-semibold uppercase tracking-wider text-yellow-400">Navigation</p>
+              <p className="text-sm font-semibold uppercase tracking-wider text-yellow-400">
+                Navigation
+              </p>
               <div className="mt-4 flex flex-col gap-2 text-sm text-slate-400">
-                <Link href="/" className="transition hover:text-white">Home</Link>
-                <Link href="/found-items" className="transition hover:text-white">Found Items</Link>
-                <Link href="/report-lost" className="transition hover:text-white">Report Lost</Link>
-                <Link href="/report-found" className="transition hover:text-white">Report Found</Link>
+                <Link href="/" className="transition hover:text-white">
+                  Home
+                </Link>
+                <Link
+                  href="/found-items"
+                  className="transition hover:text-white"
+                >
+                  Found Items
+                </Link>
+                <Link
+                  href="/report-lost"
+                  className="transition hover:text-white"
+                >
+                  Report Lost
+                </Link>
+                <Link
+                  href="/report-found"
+                  className="transition hover:text-white"
+                >
+                  Report Found
+                </Link>
               </div>
             </div>
             <div>
-              <p className="text-sm font-semibold uppercase tracking-wider text-yellow-400">About</p>
-              <p className="mt-4 text-sm text-slate-400">For students and OSA</p>
+              <p className="text-sm font-semibold uppercase tracking-wider text-yellow-400">
+                About
+              </p>
+              <p className="mt-4 text-sm text-slate-400">
+                For students and OSA
+              </p>
             </div>
           </div>
           <div className="mt-10 border-t border-slate-800 pt-6 text-center text-xs text-slate-500">

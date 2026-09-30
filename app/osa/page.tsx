@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 
@@ -12,8 +11,10 @@ function safeEqual(a, b) {
 }
 
 function isMatch(lost, found) {
-  if (safeEqual(lost.status, "Matched") || safeEqual(lost.status, "No Match")) return false;
-  if (safeEqual(found.status, "Matched") || safeEqual(found.status, "No Match")) return false;
+  if (safeEqual(lost.status, "Matched") || safeEqual(lost.status, "No Match"))
+    return false;
+  if (safeEqual(found.status, "Matched") || safeEqual(found.status, "No Match"))
+    return false;
   let score = 0;
   if (safeEqual(lost.item_name, found.item_name)) score++;
   if (safeEqual(lost.item_type, found.item_type)) score++;
@@ -24,7 +25,12 @@ function isMatch(lost, found) {
 }
 
 function statusColor(status) {
-  if (status === "Closed" || status === "Claimed" || status === "Matched" || status === "Approved") {
+  if (
+    status === "Closed" ||
+    status === "Claimed" ||
+    status === "Matched" ||
+    status === "Approved"
+  ) {
     return "bg-green-500/20 text-green-400";
   }
   if (status === "At OSA" || status === "Possible Match") {
@@ -55,9 +61,21 @@ export default function OsaDashboardPage() {
   const fetchData = async () => {
     try {
       const [lostRes, foundRes, claimsRes] = await Promise.all([
-        supabase.from("lost_items").select("id, item_name, item_type, color, location, date_lost, status"),
-        supabase.from("found_items").select("id, item_name, item_type, color, location, date_found, status"),
-        supabase.from("claims").select("id, found_item_id, student_name, item_description, identifying_details, additional_proof, photo_url, status, created_at"),
+        supabase
+          .from("lost_items")
+          .select(
+            "id, item_name, item_type, color, location, date_lost, status",
+          ),
+        supabase
+          .from("found_items")
+          .select(
+            "id, item_name, item_type, color, location, date_found, status",
+          ),
+        supabase
+          .from("claims")
+          .select(
+            "id, found_item_id, student_name, item_description, identifying_details, additional_proof, photo_url, status, created_at",
+          ),
       ]);
 
       if (lostRes.error) {
@@ -102,7 +120,9 @@ export default function OsaDashboardPage() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         router.push("/login");
         return;
@@ -149,10 +169,16 @@ export default function OsaDashboardPage() {
     setIsUpdating(true);
     let error;
     if (selectedType === "lost") {
-      const { error: err } = await supabase.from("lost_items").update({ status: "Approved" }).eq("id", selectedItem.id);
+      const { error: err } = await supabase
+        .from("lost_items")
+        .update({ status: "Approved" })
+        .eq("id", selectedItem.id);
       error = err;
     } else {
-      const { error: err } = await supabase.from("found_items").update({ status: "Approved" }).eq("id", selectedItem.id);
+      const { error: err } = await supabase
+        .from("found_items")
+        .update({ status: "Approved" })
+        .eq("id", selectedItem.id);
       error = err;
     }
     setIsUpdating(false);
@@ -170,10 +196,16 @@ export default function OsaDashboardPage() {
     setIsUpdating(true);
     let error;
     if (selectedType === "lost") {
-      const { error: err } = await supabase.from("lost_items").update({ status: "Rejected" }).eq("id", selectedItem.id);
+      const { error: err } = await supabase
+        .from("lost_items")
+        .update({ status: "Rejected" })
+        .eq("id", selectedItem.id);
       error = err;
     } else {
-      const { error: err } = await supabase.from("found_items").update({ status: "Rejected" }).eq("id", selectedItem.id);
+      const { error: err } = await supabase
+        .from("found_items")
+        .update({ status: "Rejected" })
+        .eq("id", selectedItem.id);
       error = err;
     }
     setIsUpdating(false);
@@ -188,7 +220,10 @@ export default function OsaDashboardPage() {
 
   const handleClaimApprove = async (claim) => {
     setUpdatingClaimId(claim.id);
-    const { error } = await supabase.from("claims").update({ status: "Approved" }).eq("id", claim.id);
+    const { error } = await supabase
+      .from("claims")
+      .update({ status: "Approved" })
+      .eq("id", claim.id);
     setUpdatingClaimId(null);
     if (!error) {
       fetchData();
@@ -199,7 +234,10 @@ export default function OsaDashboardPage() {
 
   const handleClaimReject = async (claim) => {
     setUpdatingClaimId(claim.id);
-    const { error } = await supabase.from("claims").update({ status: "Rejected" }).eq("id", claim.id);
+    const { error } = await supabase
+      .from("claims")
+      .update({ status: "Rejected" })
+      .eq("id", claim.id);
     setUpdatingClaimId(null);
     if (!error) {
       fetchData();
@@ -251,40 +289,14 @@ export default function OsaDashboardPage() {
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100">
-      {/* HEADER */}
-      <header className="bg-blue-900 text-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-400 text-lg font-bold text-blue-900">
-              &#128270;
-            </div>
-            <div>
-              <span className="text-lg font-bold tracking-tight">OSA Lost &amp; Found Dashboard</span>
-              <span className="ml-3 rounded-full bg-yellow-400 px-2.5 py-0.5 text-xs font-bold text-blue-900">
-                OSA Admin
-              </span>
-            </div>
-          </div>
-          <nav className="hidden items-center gap-6 text-sm md:flex">
-            <Link href="/" className="transition hover:text-yellow-300">Home</Link>
-            <Link href="/found-items" className="transition hover:text-yellow-300">Found Items</Link>
-            <Link href="/possible-matches" className="transition hover:text-yellow-300">Possible Matches</Link>
-            <Link href="/claim" className="transition hover:text-yellow-300">Pending Claims</Link>
-          </nav>
-          <button
-            onClick={handleLogout}
-            className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-blue-900 transition hover:bg-yellow-400"
-          >
-            Log Out
-          </button>
-        </div>
-      </header>
-
       {/* PAGE TITLE */}
       <section className="mx-auto max-w-6xl px-6 pt-16 pb-8">
-        <h1 className="text-4xl font-black text-blue-400 md:text-5xl">Dashboard</h1>
+        <h1 className="text-4xl font-black text-blue-400 md:text-5xl">
+          Dashboard
+        </h1>
         <p className="mt-4 text-lg text-slate-300">
-          Manage lost reports, found items, possible matches, and claim requests.
+          Manage lost reports, found items, possible matches, and claim
+          requests.
         </p>
       </section>
 
@@ -292,20 +304,36 @@ export default function OsaDashboardPage() {
       <section className="mx-auto max-w-6xl px-6 pb-10">
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-3xl border border-slate-700 bg-slate-800 p-6 shadow-sm">
-            <p className="text-sm font-semibold uppercase tracking-wider text-slate-400">Lost Reports</p>
-            <p className="mt-2 text-4xl font-black text-blue-400">{loading ? "..." : lostItems.length}</p>
+            <p className="text-sm font-semibold uppercase tracking-wider text-slate-400">
+              Lost Reports
+            </p>
+            <p className="mt-2 text-4xl font-black text-blue-400">
+              {loading ? "..." : lostItems.length}
+            </p>
           </div>
           <div className="rounded-3xl border border-slate-700 bg-slate-800 p-6 shadow-sm">
-            <p className="text-sm font-semibold uppercase tracking-wider text-slate-400">Found Items</p>
-            <p className="mt-2 text-4xl font-black text-yellow-400">{loading ? "..." : foundItems.length}</p>
+            <p className="text-sm font-semibold uppercase tracking-wider text-slate-400">
+              Found Items
+            </p>
+            <p className="mt-2 text-4xl font-black text-yellow-400">
+              {loading ? "..." : foundItems.length}
+            </p>
           </div>
           <div className="rounded-3xl border border-slate-700 bg-slate-800 p-6 shadow-sm">
-            <p className="text-sm font-semibold uppercase tracking-wider text-slate-400">Possible Matches</p>
-            <p className="mt-2 text-4xl font-black text-blue-400">{loading ? "..." : matchesCount}</p>
+            <p className="text-sm font-semibold uppercase tracking-wider text-slate-400">
+              Possible Matches
+            </p>
+            <p className="mt-2 text-4xl font-black text-blue-400">
+              {loading ? "..." : matchesCount}
+            </p>
           </div>
           <div className="rounded-3xl border border-slate-700 bg-slate-800 p-6 shadow-sm">
-            <p className="text-sm font-semibold uppercase tracking-wider text-slate-400">Pending Claims</p>
-            <p className="mt-2 text-4xl font-black text-yellow-400">{loading ? "..." : pendingClaimsCount}</p>
+            <p className="text-sm font-semibold uppercase tracking-wider text-slate-400">
+              Pending Claims
+            </p>
+            <p className="mt-2 text-4xl font-black text-yellow-400">
+              {loading ? "..." : pendingClaimsCount}
+            </p>
           </div>
         </div>
       </section>
@@ -317,9 +345,12 @@ export default function OsaDashboardPage() {
             <div className="mb-6 flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-wider text-yellow-400">
-                  {selectedType === "lost" ? "Lost Item" : "Found Item"} — Detail View
+                  {selectedType === "lost" ? "Lost Item" : "Found Item"} —
+                  Detail View
                 </p>
-                <h2 className="mt-1 text-2xl font-black text-blue-400">{selectedItem.item_name ?? "N/A"}</h2>
+                <h2 className="mt-1 text-2xl font-black text-blue-400">
+                  {selectedItem.item_name ?? "N/A"}
+                </h2>
               </div>
               <button
                 onClick={handleCloseDetail}
@@ -331,24 +362,36 @@ export default function OsaDashboardPage() {
             <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
               <div>
                 <p className="text-xs text-slate-400">Type</p>
-                <p className="text-sm font-medium text-slate-100">{selectedItem.item_type ?? "N/A"}</p>
+                <p className="text-sm font-medium text-slate-100">
+                  {selectedItem.item_type ?? "N/A"}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-slate-400">Color</p>
-                <p className="text-sm font-medium text-slate-100">{selectedItem.color ?? "N/A"}</p>
+                <p className="text-sm font-medium text-slate-100">
+                  {selectedItem.color ?? "N/A"}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-slate-400">Location</p>
-                <p className="text-sm font-medium text-slate-100">{selectedItem.location ?? "N/A"}</p>
+                <p className="text-sm font-medium text-slate-100">
+                  {selectedItem.location ?? "N/A"}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-slate-400">Date</p>
-                <p className="text-sm font-medium text-slate-100">{selectedType === "lost" ? selectedItem.date_lost ?? "N/A" : selectedItem.date_found ?? "N/A"}</p>
+                <p className="text-sm font-medium text-slate-100">
+                  {selectedType === "lost"
+                    ? (selectedItem.date_lost ?? "N/A")
+                    : (selectedItem.date_found ?? "N/A")}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-slate-400">Status</p>
                 <p className="text-sm font-medium text-slate-100">
-                  <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusColor(selectedItem.status)}`}>
+                  <span
+                    className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusColor(selectedItem.status)}`}
+                  >
                     {selectedItem.status ?? "Pending Review"}
                   </span>
                 </p>
@@ -382,9 +425,12 @@ export default function OsaDashboardPage() {
               &#8505;
             </div>
             <div>
-              <p className="text-sm font-semibold text-yellow-400">OSA Review Required</p>
+              <p className="text-sm font-semibold text-yellow-400">
+                OSA Review Required
+              </p>
               <p className="mt-1 text-slate-300">
-                OSA reviews submitted reports and verifies ownership before releasing found items.
+                OSA reviews submitted reports and verifies ownership before
+                releasing found items.
               </p>
             </div>
           </div>
@@ -393,8 +439,12 @@ export default function OsaDashboardPage() {
               &#9201;
             </div>
             <div>
-              <p className="text-sm font-semibold text-blue-400">Working Hours</p>
-              <p className="mt-1 text-slate-300">OSA working hours: 8:00 AM – 5:00 PM</p>
+              <p className="text-sm font-semibold text-blue-400">
+                Working Hours
+              </p>
+              <p className="mt-1 text-slate-300">
+                OSA working hours: 8:00 AM – 5:00 PM
+              </p>
             </div>
           </div>
         </div>
@@ -403,12 +453,16 @@ export default function OsaDashboardPage() {
       {/* RECENT LOST REPORTS */}
       <section className="mx-auto max-w-6xl px-6 pb-10">
         {loading ? (
-          <p className="py-10 text-center text-lg text-slate-400">Loading dashboard data...</p>
+          <p className="py-10 text-center text-lg text-slate-400">
+            Loading dashboard data...
+          </p>
         ) : dbError ? (
           <p className="py-10 text-center text-lg text-red-400">{dbError}</p>
         ) : (
           <>
-            <h2 className="text-2xl font-black text-blue-400">Recent Lost Reports</h2>
+            <h2 className="text-2xl font-black text-blue-400">
+              Recent Lost Reports
+            </h2>
             <div className="mt-4 overflow-x-auto">
               <table className="w-full min-w-[600px] text-left">
                 <thead>
@@ -424,14 +478,29 @@ export default function OsaDashboardPage() {
                 </thead>
                 <tbody>
                   {pendingLostItems.map((report) => (
-                    <tr key={report.id} className="border-b border-slate-800 text-sm">
-                      <td className="py-3 pr-4 font-medium text-slate-100">{report.item_name ?? "N/A"}</td>
-                      <td className="py-3 pr-4 text-slate-300">{report.item_type ?? "N/A"}</td>
-                      <td className="py-3 pr-4 text-slate-300">{report.color ?? "N/A"}</td>
-                      <td className="py-3 pr-4 text-slate-300">{report.location ?? "N/A"}</td>
-                      <td className="py-3 pr-4 text-slate-300">{report.date_lost ?? "N/A"}</td>
+                    <tr
+                      key={report.id}
+                      className="border-b border-slate-800 text-sm"
+                    >
+                      <td className="py-3 pr-4 font-medium text-slate-100">
+                        {report.item_name ?? "N/A"}
+                      </td>
+                      <td className="py-3 pr-4 text-slate-300">
+                        {report.item_type ?? "N/A"}
+                      </td>
+                      <td className="py-3 pr-4 text-slate-300">
+                        {report.color ?? "N/A"}
+                      </td>
+                      <td className="py-3 pr-4 text-slate-300">
+                        {report.location ?? "N/A"}
+                      </td>
+                      <td className="py-3 pr-4 text-slate-300">
+                        {report.date_lost ?? "N/A"}
+                      </td>
                       <td className="py-3 pr-4">
-                        <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusColor(report.status)}`}>
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusColor(report.status)}`}
+                        >
                           {report.status ?? "Pending Review"}
                         </span>
                       </td>
@@ -455,7 +524,9 @@ export default function OsaDashboardPage() {
       {/* REVIEWD LOST REPORTS */}
       {reviewedLostItems.length > 0 && (
         <section className="mx-auto max-w-6xl px-6 pb-10">
-          <h2 className="text-2xl font-black text-slate-400">Reviewed Lost Reports</h2>
+          <h2 className="text-2xl font-black text-slate-400">
+            Reviewed Lost Reports
+          </h2>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full min-w-[600px] text-left">
               <thead>
@@ -471,14 +542,29 @@ export default function OsaDashboardPage() {
               </thead>
               <tbody>
                 {reviewedLostItems.map((report) => (
-                  <tr key={report.id} className="border-b border-slate-800 text-sm">
-                    <td className="py-3 pr-4 font-medium text-slate-100">{report.item_name ?? "N/A"}</td>
-                    <td className="py-3 pr-4 text-slate-300">{report.item_type ?? "N/A"}</td>
-                    <td className="py-3 pr-4 text-slate-300">{report.color ?? "N/A"}</td>
-                    <td className="py-3 pr-4 text-slate-300">{report.location ?? "N/A"}</td>
-                    <td className="py-3 pr-4 text-slate-300">{report.date_lost ?? "N/A"}</td>
+                  <tr
+                    key={report.id}
+                    className="border-b border-slate-800 text-sm"
+                  >
+                    <td className="py-3 pr-4 font-medium text-slate-100">
+                      {report.item_name ?? "N/A"}
+                    </td>
+                    <td className="py-3 pr-4 text-slate-300">
+                      {report.item_type ?? "N/A"}
+                    </td>
+                    <td className="py-3 pr-4 text-slate-300">
+                      {report.color ?? "N/A"}
+                    </td>
+                    <td className="py-3 pr-4 text-slate-300">
+                      {report.location ?? "N/A"}
+                    </td>
+                    <td className="py-3 pr-4 text-slate-300">
+                      {report.date_lost ?? "N/A"}
+                    </td>
                     <td className="py-3 pr-4">
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusColor(report.status)}`}>
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusColor(report.status)}`}
+                      >
                         {report.status ?? "Pending Review"}
                       </span>
                     </td>
@@ -500,13 +586,11 @@ export default function OsaDashboardPage() {
 
       {/* RECENT FOUND ITEMS */}
       <section className="mx-auto max-w-6xl pb-10">
-        {loading ? (
-          null
-        ) : dbError ? (
-          null
-        ) : (
+        {loading ? null : dbError ? null : (
           <>
-            <h2 className="text-2xl font-black text-blue-400">Recent Found Items</h2>
+            <h2 className="text-2xl font-black text-blue-400">
+              Recent Found Items
+            </h2>
             <div className="mt-4 overflow-x-auto">
               <table className="w-full min-w-[600px] text-left">
                 <thead>
@@ -521,13 +605,26 @@ export default function OsaDashboardPage() {
                 </thead>
                 <tbody>
                   {pendingFoundItems.map((item) => (
-                    <tr key={item.id} className="border-b border-slate-800 text-sm">
-                      <td className="py-3 pr-4 font-medium text-slate-100">{item.item_name ?? "N/A"}</td>
-                      <td className="py-3 pr-4 text-slate-300">{item.item_type ?? "N/A"}</td>
-                      <td className="py-3 pr-4 text-slate-300">{item.location ?? "N/A"}</td>
-                      <td className="py-3 pr-4 text-slate-300">{item.date_found ?? "N/A"}</td>
+                    <tr
+                      key={item.id}
+                      className="border-b border-slate-800 text-sm"
+                    >
+                      <td className="py-3 pr-4 font-medium text-slate-100">
+                        {item.item_name ?? "N/A"}
+                      </td>
+                      <td className="py-3 pr-4 text-slate-300">
+                        {item.item_type ?? "N/A"}
+                      </td>
+                      <td className="py-3 pr-4 text-slate-300">
+                        {item.location ?? "N/A"}
+                      </td>
+                      <td className="py-3 pr-4 text-slate-300">
+                        {item.date_found ?? "N/A"}
+                      </td>
                       <td className="py-3 pr-4">
-                        <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusColor(item.status)}`}>
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusColor(item.status)}`}
+                        >
                           {item.status ?? "Pending Review"}
                         </span>
                       </td>
@@ -551,7 +648,9 @@ export default function OsaDashboardPage() {
       {/* REVIEWD FOUND ITEMS */}
       {reviewedFoundItems.length > 0 && (
         <section className="mx-auto max-w-6xl pb-10">
-          <h2 className="text-2xl font-black text-slate-400">Reviewed Found Items</h2>
+          <h2 className="text-2xl font-black text-slate-400">
+            Reviewed Found Items
+          </h2>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full min-w-[600px] text-left">
               <thead>
@@ -566,13 +665,26 @@ export default function OsaDashboardPage() {
               </thead>
               <tbody>
                 {reviewedFoundItems.map((item) => (
-                  <tr key={item.id} className="border-b border-slate-800 text-sm">
-                    <td className="py-3 pr-4 font-medium text-slate-100">{item.item_name ?? "N/A"}</td>
-                    <td className="py-3 pr-4 text-slate-300">{item.item_type ?? "N/A"}</td>
-                    <td className="py-3 pr-4 text-slate-300">{item.location ?? "N/A"}</td>
-                    <td className="py-3 pr-4 text-slate-300">{item.date_found ?? "N/A"}</td>
+                  <tr
+                    key={item.id}
+                    className="border-b border-slate-800 text-sm"
+                  >
+                    <td className="py-3 pr-4 font-medium text-slate-100">
+                      {item.item_name ?? "N/A"}
+                    </td>
+                    <td className="py-3 pr-4 text-slate-300">
+                      {item.item_type ?? "N/A"}
+                    </td>
+                    <td className="py-3 pr-4 text-slate-300">
+                      {item.location ?? "N/A"}
+                    </td>
+                    <td className="py-3 pr-4 text-slate-300">
+                      {item.date_found ?? "N/A"}
+                    </td>
                     <td className="py-3 pr-4">
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusColor(item.status)}`}>
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusColor(item.status)}`}
+                      >
                         {item.status ?? "Pending Review"}
                       </span>
                     </td>
@@ -595,31 +707,46 @@ export default function OsaDashboardPage() {
       {/* PENDING CLAIMS */}
       <section className="mx-auto max-w-6xl pb-20">
         {loading ? (
-          <p className="py-10 text-center text-lg text-slate-400">Loading claims...</p>
+          <p className="py-10 text-center text-lg text-slate-400">
+            Loading claims...
+          </p>
         ) : dbError ? (
           <p className="py-10 text-center text-lg text-red-400">{dbError}</p>
         ) : (
           <>
-            <h2 className="text-2xl font-black text-blue-400">Pending Claims</h2>
+            <h2 className="text-2xl font-black text-blue-400">
+              Pending Claims
+            </h2>
             <div className="mt-4 space-y-4">
               {pendingClaims.map((claim) => (
-                <div key={claim.id} className="flex flex-col gap-4 rounded-3xl border border-slate-700 bg-slate-800 p-6 shadow-sm md:flex-row md:items-center md:justify-between">
+                <div
+                  key={claim.id}
+                  className="flex flex-col gap-4 rounded-3xl border border-slate-700 bg-slate-800 p-6 shadow-sm md:flex-row md:items-center md:justify-between"
+                >
                   <div className="grid gap-3 text-sm sm:grid-cols-3">
                     <div>
                       <p className="text-xs text-slate-400">Item</p>
-                      <p className="font-medium text-slate-100">{claim.item_description ?? "N/A"}</p>
+                      <p className="font-medium text-slate-100">
+                        {claim.item_description ?? "N/A"}
+                      </p>
                     </div>
                     <div>
                       <p className="text-xs text-slate-400">Student</p>
-                      <p className="font-medium text-slate-100">{claim.student_name ?? "N/A"}</p>
+                      <p className="font-medium text-slate-100">
+                        {claim.student_name ?? "N/A"}
+                      </p>
                     </div>
                     <div>
                       <p className="text-xs text-slate-400">Date</p>
-                      <p className="font-medium text-slate-100">{claim.created_at ?? "N/A"}</p>
+                      <p className="font-medium text-slate-100">
+                        {claim.created_at ?? "N/A"}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColor(claim.status)}`}>
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-semibold ${statusColor(claim.status)}`}
+                    >
                       {claim.status ?? "Pending Verification"}
                     </span>
                     <button
@@ -633,7 +760,9 @@ export default function OsaDashboardPage() {
                       disabled={updatingClaimId === claim.id}
                       className="rounded-full bg-green-500/20 px-4 py-2 text-xs font-semibold text-green-400 border border-green-500/40 transition hover:bg-green-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {updatingClaimId === claim.id ? "Approving..." : "Approve"}
+                      {updatingClaimId === claim.id
+                        ? "Approving..."
+                        : "Approve"}
                     </button>
                     <button
                       onClick={() => handleClaimReject(claim)}
@@ -655,7 +784,9 @@ export default function OsaDashboardPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-lg rounded-3xl border border-slate-700 bg-slate-800 p-8 shadow-xl">
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-2xl font-black text-blue-400">Claim Details</h2>
+              <h2 className="text-2xl font-black text-blue-400">
+                Claim Details
+              </h2>
               <button
                 onClick={handleCloseClaim}
                 className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-slate-300 transition hover:bg-slate-600"
@@ -672,32 +803,54 @@ export default function OsaDashboardPage() {
             )}
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="font-semibold text-slate-400">Student Name</span>
-                <span className="text-slate-100">{selectedClaim.student_name ?? "N/A"}</span>
+                <span className="font-semibold text-slate-400">
+                  Student Name
+                </span>
+                <span className="text-slate-100">
+                  {selectedClaim.student_name ?? "N/A"}
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="font-semibold text-slate-400">Item Description</span>
-                <span className="text-slate-100">{selectedClaim.item_description ?? "N/A"}</span>
+                <span className="font-semibold text-slate-400">
+                  Item Description
+                </span>
+                <span className="text-slate-100">
+                  {selectedClaim.item_description ?? "N/A"}
+                </span>
               </div>
               {selectedClaim.identifying_details && (
                 <div className="pt-2">
-                  <span className="font-semibold text-slate-400">Identifying Details</span>
-                  <p className="mt-1 text-slate-300">{selectedClaim.identifying_details}</p>
+                  <span className="font-semibold text-slate-400">
+                    Identifying Details
+                  </span>
+                  <p className="mt-1 text-slate-300">
+                    {selectedClaim.identifying_details}
+                  </p>
                 </div>
               )}
               {selectedClaim.additional_proof && (
                 <div className="pt-2">
-                  <span className="font-semibold text-slate-400">Additional Proof</span>
-                  <p className="mt-1 text-slate-300">{selectedClaim.additional_proof}</p>
+                  <span className="font-semibold text-slate-400">
+                    Additional Proof
+                  </span>
+                  <p className="mt-1 text-slate-300">
+                    {selectedClaim.additional_proof}
+                  </p>
                 </div>
               )}
               <div className="flex justify-between">
                 <span className="font-semibold text-slate-400">Status</span>
-                <span className="text-slate-100">{selectedClaim.status ?? "Pending Verification"}</span>
+                <span className="text-slate-100">
+                  {selectedClaim.status ?? "Pending Verification"}
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="font-semibold text-slate-400">Date Submitted</span>
-                <span className="text-slate-100">{selectedClaim.created_at ?? "N/A"}</span>
+                <span className="font-semibold text-slate-400">
+                  Date Submitted
+                </span>
+                <span className="text-slate-100">
+                  {selectedClaim.created_at ?? "N/A"}
+                </span>
               </div>
             </div>
             <button
@@ -717,21 +870,36 @@ export default function OsaDashboardPage() {
             <div>
               <p className="text-lg font-bold">School Lost &amp; Found</p>
               <p className="mt-3 text-sm text-slate-400">
-                Helping students recover lost items and reunite them with their belongings.
+                Helping students recover lost items and reunite them with their
+                belongings.
               </p>
             </div>
             <div>
-              <p className="text-sm font-semibold uppercase tracking-wider text-yellow-400">Navigation</p>
+              <p className="text-sm font-semibold uppercase tracking-wider text-yellow-400">
+                Navigation
+              </p>
               <div className="mt-4 flex flex-col gap-2 text-sm text-slate-400">
-                <a href="#" className="transition hover:text-white">Home</a>
-                <a href="#" className="transition hover:text-white">Found Items</a>
-                <a href="#" className="transition hover:text-white">Report Lost</a>
-                <a href="#" className="transition hover:text-white">Report Found</a>
+                <a href="#" className="transition hover:text-white">
+                  Home
+                </a>
+                <a href="#" className="transition hover:text-white">
+                  Found Items
+                </a>
+                <a href="#" className="transition hover:text-white">
+                  Report Lost
+                </a>
+                <a href="#" className="transition hover:text-white">
+                  Report Found
+                </a>
               </div>
             </div>
             <div>
-              <p className="text-sm font-semibold uppercase tracking-wider text-yellow-400">About</p>
-              <p className="mt-4 text-sm text-slate-400">For students and OSA</p>
+              <p className="text-sm font-semibold uppercase tracking-wider text-yellow-400">
+                About
+              </p>
+              <p className="mt-4 text-sm text-slate-400">
+                For students and OSA
+              </p>
             </div>
           </div>
           <div className="mt-10 border-t border-slate-800 pt-6 text-center text-xs text-slate-500">

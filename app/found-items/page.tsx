@@ -73,30 +73,6 @@ export default function FoundItemsPage() {
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100">
-      {/* HEADER */}
-      <header className="bg-blue-900 text-white">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-400 text-lg font-bold text-blue-900">
-              &#128270;
-            </div>
-            <span className="text-lg font-bold tracking-tight">School Lost &amp; Found</span>
-          </div>
-          <nav className="hidden items-center gap-6 text-sm md:flex">
-            <Link href="/" className="transition hover:text-yellow-300">Home</Link>
-            <Link href="/found-items" className="text-yellow-300">Found Items</Link>
-            <Link href="/report-lost" className="transition hover:text-yellow-300">Report Lost</Link>
-            <Link href="/report-found" className="transition hover:text-yellow-300">Report Found</Link>
-          </nav>
-          <a
-            href="#"
-            className="rounded-full bg-white px-5 py-2 text-sm font-semibold text-blue-900 transition hover:bg-yellow-400"
-          >
-            Login
-          </a>
-        </div>
-      </header>
-
       {/* PAGE TITLE */}
       <section className="mx-auto max-w-6xl px-6 pt-16 pb-8">
         <h1 className="text-4xl font-black text-blue-400 md:text-5xl">Found Items</h1>
