@@ -46,7 +46,10 @@ export default function FoundItemsPage() {
       try {
         const { data, error } = await supabase
           .from("found_items")
-          .select("id, item_name, item_type, description, color, date_found, location, status, photo_url, returned_by");
+          .select(
+            "id, item_name, item_type, description, color, date_found, location, status, photo_url, returned_by",
+          )
+          .neq("status", "Rejected");
         if (error) {
           setDbError(error.message);
         } else {
@@ -75,7 +78,9 @@ export default function FoundItemsPage() {
     <div className="min-h-screen bg-slate-900 text-slate-100">
       {/* PAGE TITLE */}
       <section className="mx-auto max-w-6xl px-6 pt-16 pb-8">
-        <h1 className="text-4xl font-black text-blue-400 md:text-5xl">Found Items</h1>
+        <h1 className="text-4xl font-black text-blue-400 md:text-5xl">
+          Found Items
+        </h1>
         <p className="mt-4 text-lg text-slate-300">
           Items reviewed and listed by the Office of Student Affairs (OSA).
         </p>
@@ -86,7 +91,10 @@ export default function FoundItemsPage() {
         <div className="rounded-3xl border border-slate-700 bg-slate-800 p-6 shadow-sm">
           {/* Search bar */}
           <div className="mb-6">
-            <label htmlFor="search" className="mb-2 block text-sm font-semibold text-slate-300">
+            <label
+              htmlFor="search"
+              className="mb-2 block text-sm font-semibold text-slate-300"
+            >
               Search Items
             </label>
             <input
@@ -101,7 +109,10 @@ export default function FoundItemsPage() {
           {/* Filters */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
-              <label htmlFor="type" className="mb-2 block text-sm font-semibold text-slate-300">
+              <label
+                htmlFor="type"
+                className="mb-2 block text-sm font-semibold text-slate-300"
+              >
                 Item Type
               </label>
               <select
@@ -116,7 +127,10 @@ export default function FoundItemsPage() {
               </select>
             </div>
             <div>
-              <label htmlFor="color" className="mb-2 block text-sm font-semibold text-slate-300">
+              <label
+                htmlFor="color"
+                className="mb-2 block text-sm font-semibold text-slate-300"
+              >
                 Color
               </label>
               <select
@@ -131,7 +145,10 @@ export default function FoundItemsPage() {
               </select>
             </div>
             <div>
-              <label htmlFor="location" className="mb-2 block text-sm font-semibold text-slate-300">
+              <label
+                htmlFor="location"
+                className="mb-2 block text-sm font-semibold text-slate-300"
+              >
                 Location
               </label>
               <select
@@ -146,7 +163,10 @@ export default function FoundItemsPage() {
               </select>
             </div>
             <div>
-              <label htmlFor="status" className="mb-2 block text-sm font-semibold text-slate-300">
+              <label
+                htmlFor="status"
+                className="mb-2 block text-sm font-semibold text-slate-300"
+              >
                 Status
               </label>
               <select
@@ -166,21 +186,33 @@ export default function FoundItemsPage() {
       {/* FOUND ITEMS GRID */}
       <section className="mx-auto max-w-6xl px-6 pb-20">
         {loading ? (
-          <p className="py-20 text-center text-lg text-slate-400">Loading found items...</p>
+          <p className="py-20 text-center text-lg text-slate-400">
+            Loading found items...
+          </p>
         ) : dbError ? (
           <p className="py-20 text-center text-lg text-red-400">{dbError}</p>
         ) : searchedItems.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {searchedItems.map((item) => (
-              <div key={item.id} className="rounded-3xl border border-slate-700 bg-slate-800 p-6 shadow-sm transition hover:shadow-md">
-                <h3 className="text-xl font-bold text-blue-400">{item.item_name}</h3>
-                <p className="mt-2 text-sm text-slate-300">{item.description}</p>
+              <div
+                key={item.id}
+                className="rounded-3xl border border-slate-700 bg-slate-800 p-6 shadow-sm transition hover:shadow-md"
+              >
+                <h3 className="text-xl font-bold text-blue-400">
+                  {item.item_name}
+                </h3>
+                <p className="mt-2 text-sm text-slate-300">
+                  {item.description}
+                </p>
                 <div className="mt-4 flex items-center justify-between text-xs text-slate-400">
                   <span>{item.date_found}</span>
                   <span>{item.location}</span>
                 </div>
                 <div className="mt-3 flex items-center gap-2">
-                  <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: item.color || "#94a3b8" }} />
+                  <span
+                    className="inline-block h-3 w-3 rounded-full"
+                    style={{ backgroundColor: item.color || "#94a3b8" }}
+                  />
                   <span className="text-xs text-slate-400">{item.color}</span>
                 </div>
                 <div className="mt-5 flex items-center justify-between">
@@ -198,7 +230,9 @@ export default function FoundItemsPage() {
             ))}
           </div>
         ) : (
-          <p className="py-20 text-center text-lg text-slate-400">No found items match your search.</p>
+          <p className="py-20 text-center text-lg text-slate-400">
+            No found items match your search.
+          </p>
         )}
       </section>
 
@@ -207,7 +241,9 @@ export default function FoundItemsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
           <div className="w-full max-w-lg rounded-3xl border border-slate-700 bg-slate-800 p-8 shadow-xl">
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-2xl font-black text-blue-400">Item Details</h2>
+              <h2 className="text-2xl font-black text-blue-400">
+                Item Details
+              </h2>
               <button
                 onClick={handleCloseDetail}
                 className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-slate-300 transition hover:bg-slate-600"
@@ -229,11 +265,15 @@ export default function FoundItemsPage() {
               </div>
               <div className="flex justify-between">
                 <span className="font-semibold text-slate-400">Item Type</span>
-                <span className="text-slate-100">{selectedItem.item_type || "N/A"}</span>
+                <span className="text-slate-100">
+                  {selectedItem.item_type || "N/A"}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="font-semibold text-slate-400">Color</span>
-                <span className="text-slate-100">{selectedItem.color || "N/A"}</span>
+                <span className="text-slate-100">
+                  {selectedItem.color || "N/A"}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="font-semibold text-slate-400">Location</span>
@@ -241,7 +281,9 @@ export default function FoundItemsPage() {
               </div>
               <div className="flex justify-between">
                 <span className="font-semibold text-slate-400">Date Found</span>
-                <span className="text-slate-100">{selectedItem.date_found}</span>
+                <span className="text-slate-100">
+                  {selectedItem.date_found}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="font-semibold text-slate-400">Status</span>
@@ -249,13 +291,21 @@ export default function FoundItemsPage() {
               </div>
               {selectedItem.returned_by && (
                 <div className="flex justify-between">
-                  <span className="font-semibold text-slate-400">Returned By</span>
-                  <span className="text-slate-100">{selectedItem.returned_by}</span>
+                  <span className="font-semibold text-slate-400">
+                    Returned By
+                  </span>
+                  <span className="text-slate-100">
+                    {selectedItem.returned_by}
+                  </span>
                 </div>
               )}
               <div className="pt-2">
-                <span className="font-semibold text-slate-400">Description</span>
-                <p className="mt-1 text-slate-300">{selectedItem.description}</p>
+                <span className="font-semibold text-slate-400">
+                  Description
+                </span>
+                <p className="mt-1 text-slate-300">
+                  {selectedItem.description}
+                </p>
               </div>
             </div>
             <div className="mt-6 flex flex-col gap-3">
@@ -283,21 +333,45 @@ export default function FoundItemsPage() {
             <div>
               <p className="text-lg font-bold">School Lost &amp; Found</p>
               <p className="mt-3 text-sm text-slate-400">
-                Helping students recover lost items and reunite them with their belongings.
+                Helping students recover lost items and reunite them with their
+                belongings.
               </p>
             </div>
             <div>
-              <p className="text-sm font-semibold uppercase tracking-wider text-yellow-400">Navigation</p>
+              <p className="text-sm font-semibold uppercase tracking-wider text-yellow-400">
+                Navigation
+              </p>
               <div className="mt-4 flex flex-col gap-2 text-sm text-slate-400">
-                <Link href="/" className="transition hover:text-white">Home</Link>
-                <Link href="/found-items" className="transition hover:text-white">Found Items</Link>
-                <Link href="/report-lost" className="transition hover:text-white">Report Lost</Link>
-                <Link href="/report-found" className="transition hover:text-white">Report Found</Link>
+                <Link href="/" className="transition hover:text-white">
+                  Home
+                </Link>
+                <Link
+                  href="/found-items"
+                  className="transition hover:text-white"
+                >
+                  Found Items
+                </Link>
+                <Link
+                  href="/report-lost"
+                  className="transition hover:text-white"
+                >
+                  Report Lost
+                </Link>
+                <Link
+                  href="/report-found"
+                  className="transition hover:text-white"
+                >
+                  Report Found
+                </Link>
               </div>
             </div>
             <div>
-              <p className="text-sm font-semibold uppercase tracking-wider text-yellow-400">About</p>
-              <p className="mt-4 text-sm text-slate-400">For students and OSA</p>
+              <p className="text-sm font-semibold uppercase tracking-wider text-yellow-400">
+                About
+              </p>
+              <p className="mt-4 text-sm text-slate-400">
+                For students and OSA
+              </p>
             </div>
           </div>
           <div className="mt-10 border-t border-slate-800 pt-6 text-center text-xs text-slate-500">
