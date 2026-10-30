@@ -1,11 +1,21 @@
 "use client";
 
+import { Suspense } from "react";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "../../lib/supabase";
+import { getCurrentProfile } from "../../lib/profile";
 
 export default function ClaimPage() {
+  return (
+    <Suspense fallback={<div />}>
+      <ClaimContent />
+    </Suspense>
+  );
+}
+
+function ClaimContent() {
   const searchParams = useSearchParams();
   const itemId = searchParams.get("itemId");
   const [submitted, setSubmitted] = useState(false);
@@ -13,7 +23,9 @@ export default function ClaimPage() {
   const [error, setError] = useState("");
   const [itemsLoading, setItemsLoading] = useState(true);
   const [itemsError, setItemsError] = useState("");
-  const [foundItems, setFoundItems] = useState([]);
+  const [foundItems, setFoundItems] = useState<
+    { id: string; item_name: string | null; color: string | null; location: string | null; status: string | null }[]
+  >([]);
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState("");
   const photoInputRef = useRef<HTMLInputElement>(null);
@@ -31,6 +43,7 @@ export default function ClaimPage() {
         const { data, error: dbError } = await supabase
           .from("found_items")
           .select("id, item_name, color, location, status")
+          .eq("status", "Approved")
           .order("id", { ascending: true });
 
         if (dbError) {
@@ -78,7 +91,15 @@ export default function ClaimPage() {
     setIsLoading(true);
     setError("");
 
+    const profile = await getCurrentProfile();
+    if (!profile.isAuthenticated || !profile.userId) {
+      setError("You must be logged in to submit a claim.");
+      setIsLoading(false);
+      return;
+    }
+
     const { error: dbError } = await supabase.from("claims").insert({
+      user_id: profile.userId,
       found_item_id: form.foundItem,
       student_name: form.studentName,
       item_description: form.description,

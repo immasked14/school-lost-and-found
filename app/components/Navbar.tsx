@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { getCurrentProfile } from "@/lib/profile";
 import { useState, useEffect } from "react";
 
 function Navbar() {
@@ -15,15 +16,17 @@ function Navbar() {
     const syncAuth = async () => {
       const { data } = await supabase.auth.getUser();
       setIsLoggedIn(!!data.user);
-      setRole(data.user?.user_metadata?.role ?? null);
+      const profile = await getCurrentProfile();
+      setRole(profile.role);
     };
 
     syncAuth();
 
     const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      async (_event, session) => {
         setIsLoggedIn(!!session);
-        setRole(session?.user?.user_metadata?.role ?? null);
+        const profile = await getCurrentProfile();
+        setRole(profile.role);
       },
     );
 
@@ -58,14 +61,8 @@ function Navbar() {
             </div>
           </div>
           <nav className="hidden items-center gap-6 text-sm md:flex">
-            <Link href="/" className="transition hover:text-yellow-300">
-              Home
-            </Link>
-            <Link
-              href="/found-items"
-              className="transition hover:text-yellow-300"
-            >
-              Found Items
+            <Link href="/osa" className="transition hover:text-yellow-300">
+              OSA Dashboard
             </Link>
             <Link
               href="/possible-matches"
@@ -73,7 +70,7 @@ function Navbar() {
             >
               Possible Matches
             </Link>
-            <Link href="/claim" className="transition hover:text-yellow-300">
+            <Link href="/osa/claims" className="transition hover:text-yellow-300">
               Pending Claims
             </Link>
           </nav>
@@ -121,6 +118,9 @@ function Navbar() {
             className="transition hover:text-yellow-300"
           >
             Report Found
+          </Link>
+          <Link href="/claim" className="transition hover:text-yellow-300">
+            Submit Claim
           </Link>
         </nav>
         {isLoggedIn ? (

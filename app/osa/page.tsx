@@ -4,39 +4,12 @@ import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 import Link from "next/link";
+import { isPossibleMatch } from "../../lib/match";
+import { getCurrentProfile } from "../../lib/profile";
 import { Claim, FoundItem, LostItem } from "@/lib/types";
 
 function safeEqual(a: unknown, b: string) {
   return (a ?? "").toString().toLowerCase() === b.toLowerCase();
-}
-
-function isMatch(
-  lost: {
-    status?: string;
-    item_name?: string;
-    item_type?: string;
-    color?: string;
-    location?: string;
-  },
-  found: {
-    status?: string;
-    item_name?: string;
-    item_type?: string;
-    color?: string;
-    location?: string;
-  },
-) {
-  if (safeEqual(lost.status, "Matched") || safeEqual(lost.status, "No Match"))
-    return false;
-  if (safeEqual(found.status, "Matched") || safeEqual(found.status, "No Match"))
-    return false;
-
-  let score = 0;
-  if (safeEqual(lost.item_name, found.item_name ?? "")) score++;
-  if (safeEqual(lost.item_type, found.item_type ?? "")) score++;
-  if (safeEqual(lost.color, found.color ?? "")) score++;
-  if (safeEqual(lost.location, found.location ?? "")) score++;
-  return score >= 3;
 }
 
 function statusColor(status?: string) {
@@ -89,13 +62,16 @@ export default function OsaDashboardPage() {
         supabase
           .from("lost_items")
           .select(
-            "id, item_name, item_type, color, location, date_lost, status",
-          ),
+            "id, item_name, item_type, color, location, description, date_lost, status",
+          )
+          .neq("status", "Rejected"),
         supabase
           .from("found_items")
           .select(
-            "id, item_name, item_type, color, location, date_found, status",
-          ),
+            "id, item_name, item_type, color, location, description, date_found, status",
+          )
+          .neq("status", "Claimed")
+          .neq("status", "Rejected"),
         supabase
           .from("claims")
           .select(
@@ -123,7 +99,7 @@ export default function OsaDashboardPage() {
       let matchCount = 0;
       for (const l of lost) {
         for (const f of found) {
-          if (isMatch(l, f)) matchCount++;
+          if (isPossibleMatch(l, f)) matchCount++;
         }
       }
       setMatchesCount(matchCount);
@@ -144,14 +120,12 @@ export default function OsaDashboardPage() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
+      const profile = await getCurrentProfile();
+      if (!profile.isAuthenticated) {
         router.push("/login");
         return;
       }
-      if (user.user_metadata?.role !== "osa") {
+      if (profile.role !== "osa") {
         router.push("/");
         return;
       }
@@ -171,7 +145,14 @@ export default function OsaDashboardPage() {
     [lostItems],
   );
   const reviewedLostItems = useMemo(
-    () => lostItems.filter((i) => !safeEqual(i.status, "Pending Review")),
+    () =>
+      lostItems.filter(
+        (i) =>
+          !safeEqual(i.status, "Pending Review") &&
+          !safeEqual(i.status, "Rejected") &&
+          !safeEqual(i.status, "Matched") &&
+          !safeEqual(i.status, "No Match"),
+      ),
     [lostItems],
   );
 
@@ -180,18 +161,28 @@ export default function OsaDashboardPage() {
     [foundItems],
   );
   const reviewedFoundItems = useMemo(
-    () => foundItems.filter((i) => !safeEqual(i.status, "Pending Review")),
+    () =>
+      foundItems.filter(
+        (i) =>
+          !safeEqual(i.status, "Pending Review") &&
+          !safeEqual(i.status, "Rejected") &&
+          !safeEqual(i.status, "Matched") &&
+          !safeEqual(i.status, "Claimed") &&
+          !safeEqual(i.status, "No Match") &&
+          !safeEqual(i.status, "Possible Match"),
+      ),
     [foundItems],
   );
 
   const handleApprove = async () => {
     if (!selectedItem || !selectedType) return;
     setIsUpdating(true);
-    const table = selectedType === "lost" ? "lost_items" : "found_items";
-    const { error } = await supabase
-      .from(table)
-      .update({ status: "Approved" })
-      .eq("id", selectedItem.id);
+    const rpcName = selectedType === "lost" ? "osa_review_lost_item" : "osa_review_found_item";
+    const params =
+      selectedType === "lost"
+        ? { p_item_id: selectedItem.id, p_status: "Approved" }
+        : { p_item_id: selectedItem.id, p_status: "Approved" };
+    const { error } = await supabase.rpc(rpcName, params);
     setIsUpdating(false);
     if (!error) {
       setSelectedItem(null);
@@ -205,11 +196,12 @@ export default function OsaDashboardPage() {
   const handleReject = async () => {
     if (!selectedItem || !selectedType) return;
     setIsUpdating(true);
-    const table = selectedType === "lost" ? "lost_items" : "found_items";
-    const { error } = await supabase
-      .from(table)
-      .update({ status: "Rejected" })
-      .eq("id", selectedItem.id);
+    const rpcName = selectedType === "lost" ? "osa_review_lost_item" : "osa_review_found_item";
+    const params =
+      selectedType === "lost"
+        ? { p_item_id: selectedItem.id, p_status: "Rejected" }
+        : { p_item_id: selectedItem.id, p_status: "Rejected" };
+    const { error } = await supabase.rpc(rpcName, params);
     setIsUpdating(false);
     if (!error) {
       setSelectedItem(null);
@@ -222,10 +214,10 @@ export default function OsaDashboardPage() {
 
   const handleClaimApprove = async (claim: Claim) => {
     setUpdatingClaimId(claim.id);
-    const { error } = await supabase
-      .from("claims")
-      .update({ status: "Approved" })
-      .eq("id", claim.id);
+    const { error } = await supabase.rpc("osa_review_claim", {
+      p_claim_id: claim.id,
+      p_status: "Approved",
+    });
     setUpdatingClaimId(null);
     if (!error) fetchData();
     else setDbError(error.message);
@@ -233,10 +225,10 @@ export default function OsaDashboardPage() {
 
   const handleClaimReject = async (claim: Claim) => {
     setUpdatingClaimId(claim.id);
-    const { error } = await supabase
-      .from("claims")
-      .update({ status: "Rejected" })
-      .eq("id", claim.id);
+    const { error } = await supabase.rpc("osa_review_claim", {
+      p_claim_id: claim.id,
+      p_status: "Rejected",
+    });
     setUpdatingClaimId(null);
     if (!error) fetchData();
     else setDbError(error.message);

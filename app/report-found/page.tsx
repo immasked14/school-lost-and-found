@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import Link from "next/link";
 import { supabase } from "../../lib/supabase";
+import { getCurrentProfile } from "../../lib/profile";
 
 export default function ReportFoundPage() {
   const [submitted, setSubmitted] = useState(false);
@@ -50,12 +51,19 @@ export default function ReportFoundPage() {
     setError("");
     setPhotoError("");
 
+    const profile = await getCurrentProfile();
+    if (!profile.isAuthenticated || !profile.userId) {
+      setError("You must be logged in to submit a report.");
+      setIsLoading(false);
+      return;
+    }
+
     let photoUrl: string | null = null;
 
     if (photo) {
       const fileExt = photo.name.split(".").pop();
       const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${fileExt}`;
-      const filePath = `item-photos/${uniqueName}`;
+      const filePath = `${profile.userId}/${uniqueName}`;
 
       const { error: uploadError } = await supabase.storage
         .from("item-photos")
@@ -75,6 +83,7 @@ export default function ReportFoundPage() {
     }
 
     const { error: dbError } = await supabase.from("found_items").insert({
+      user_id: profile.userId,
       item_name: form.itemName,
       item_type: form.itemType,
       color: form.color,

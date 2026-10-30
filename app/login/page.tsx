@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabase";
+import { getCurrentProfile } from "../../lib/profile";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -32,7 +33,8 @@ export default function LoginPage() {
     if (dbError) {
       setError(dbError.message);
     } else {
-      const role = data?.user?.user_metadata?.role;
+      const profile = await getCurrentProfile();
+      const role = profile.role;
       if (role === "osa") {
         router.push("/osa");
       } else {

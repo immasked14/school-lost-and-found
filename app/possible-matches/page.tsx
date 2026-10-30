@@ -3,50 +3,63 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "../../lib/supabase";
+import { getCurrentProfile } from "../../lib/profile";
 
-function safeEqual(a, b) {
-  const sa = (a ?? "").toString().toLowerCase();
-  const sb = (b ?? "").toString().toLowerCase();
-  return sa === sb;
-}
+import { isPossibleMatch } from "../../lib/match";
 
-function isMatch(lost, found) {
-  if (safeEqual(lost.status, "Matched") || safeEqual(lost.status, "No Match"))
-    return false;
-  if (safeEqual(found.status, "Matched") || safeEqual(found.status, "No Match"))
-    return false;
-  let score = 0;
-  if (safeEqual(lost.item_name, found.item_name)) score++;
-  if (safeEqual(lost.item_type, found.item_type)) score++;
-  if (safeEqual(lost.color, found.color)) score++;
-  if (safeEqual(lost.location, found.location)) score++;
-  if (safeEqual(lost.description, found.description)) score++;
-  return score >= 3;
-}
+type MatchItem = {
+  id: string;
+  item_name: string | null;
+  item_type: string | null;
+  color: string | null;
+  location: string | null;
+  description: string | null;
+  date_lost?: string | null;
+  date_found?: string | null;
+  status: string | null;
+};
+
+type MatchPair = { lost: MatchItem; found: MatchItem };
 
 export default function PossibleMatchesPage() {
-  const [lostItems, setLostItems] = useState([]);
-  const [foundItems, setFoundItems] = useState([]);
+  const [lostItems, setLostItems] = useState<MatchItem[]>([]);
+  const [foundItems, setFoundItems] = useState<MatchItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [dbError, setDbError] = useState("");
-  const [matches, setMatches] = useState([]);
-  const [reviewed, setReviewed] = useState({});
+  const [matches, setMatches] = useState<MatchPair[]>([]);
+  const [reviewed, setReviewed] = useState<Record<number, string>>({});
   const [isUpdating, setIsUpdating] = useState(false);
   const [notification, setNotification] = useState("");
 
   const fetchData = async () => {
+    setLoading(true);
+    setDbError("");
+    const profile = await getCurrentProfile();
+    if (!profile.isAuthenticated) {
+      setDbError("You must be logged in to view possible matches.");
+      setLoading(false);
+      return;
+    }
+    if (profile.role !== "osa") {
+      setDbError("Only OSA can view possible matches.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const [lostRes, foundRes] = await Promise.all([
         supabase
           .from("lost_items")
           .select(
             "id, item_name, item_type, color, location, description, date_lost, status",
-          ),
+          )
+          .neq("status", "Rejected"),
         supabase
           .from("found_items")
           .select(
             "id, item_name, item_type, color, location, description, date_found, status",
-          ),
+          )
+          .neq("status", "Rejected"),
       ]);
 
       if (lostRes.error) {
@@ -59,7 +72,7 @@ export default function PossibleMatchesPage() {
         const foundMatches = [];
         for (let i = 0; i < lost.length; i++) {
           for (let j = 0; j < found.length; j++) {
-            if (isMatch(lost[i], found[j])) {
+            if (isPossibleMatch(lost[i], found[j])) {
               foundMatches.push({ lost: lost[i], found: found[j] });
             }
           }
@@ -79,47 +92,41 @@ export default function PossibleMatchesPage() {
     fetchData();
   }, []);
 
-  const handleConfirmMatch = async (match) => {
+  const handleConfirmMatch = async (match: MatchPair) => {
     setIsUpdating(true);
     setNotification("");
-    const { error: lostError } = await supabase
-      .from("lost_items")
-      .update({ status: "Matched" })
-      .eq("id", match.lost.id);
-    const { error: foundError } = await supabase
-      .from("found_items")
-      .update({ status: "Matched" })
-      .eq("id", match.found.id);
+    const { error } = await supabase.rpc("osa_update_possible_match", {
+      p_lost_item_id: match.lost.id,
+      p_found_item_id: match.found.id,
+      p_status: "Matched",
+    });
     setIsUpdating(false);
-    if (lostError || foundError) {
-      setDbError(lostError?.message ?? foundError?.message);
+    if (error) {
+      setDbError(error.message);
       return;
     }
     setNotification("Match confirmed successfully");
     fetchData();
   };
 
-  const handleRejectMatch = async (match) => {
+  const handleRejectMatch = async (match: MatchPair) => {
     setIsUpdating(true);
     setNotification("");
-    const { error: lostError } = await supabase
-      .from("lost_items")
-      .update({ status: "No Match" })
-      .eq("id", match.lost.id);
-    const { error: foundError } = await supabase
-      .from("found_items")
-      .update({ status: "No Match" })
-      .eq("id", match.found.id);
+    const { error } = await supabase.rpc("osa_update_possible_match", {
+      p_lost_item_id: match.lost.id,
+      p_found_item_id: match.found.id,
+      p_status: "No Match",
+    });
     setIsUpdating(false);
-    if (lostError || foundError) {
-      setDbError(lostError?.message ?? foundError?.message);
+    if (error) {
+      setDbError(error.message);
       return;
     }
     setNotification("Match rejected successfully");
     fetchData();
   };
 
-  const renderMatchCard = (match, index) => (
+  const renderMatchCard = (match: MatchPair, index: number) => (
     <div
       key={index}
       className="rounded-3xl border border-slate-700 bg-slate-800 p-8 shadow-sm"

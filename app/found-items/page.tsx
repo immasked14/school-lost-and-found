@@ -4,7 +4,20 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "../../lib/supabase";
 
-function stringContains(str, sub) {
+type FoundItemRecord = {
+  id: string;
+  item_name: string | null;
+  item_type: string | null;
+  description: string | null;
+  color: string | null;
+  date_found: string | null;
+  location: string | null;
+  status: string | null;
+  photo_url: string | null;
+  returned_by: string | null;
+};
+
+function stringContains(str: string, sub: string): boolean {
   const safeStr = (str ?? "").toString();
   const safeSub = (sub ?? "").toString();
   const lowerStr = safeStr.toLowerCase();
@@ -22,12 +35,12 @@ function stringContains(str, sub) {
   return false;
 }
 
-function linearSearch(items, searchTerm) {
+function linearSearch(items: FoundItemRecord[], searchTerm: string): FoundItemRecord[] {
   const results = [];
   if (searchTerm.trim() === "") return items;
   const lowerTerm = searchTerm.toLowerCase();
   for (let i = 0; i < items.length; i++) {
-    if (stringContains(items[i].name, lowerTerm)) {
+    if (stringContains(items[i].item_name ?? "", lowerTerm)) {
       results.push(items[i]);
     }
   }
@@ -36,10 +49,10 @@ function linearSearch(items, searchTerm) {
 
 export default function FoundItemsPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState<FoundItemRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [dbError, setDbError] = useState("");
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedItem, setSelectedItem] = useState<FoundItemRecord | null>(null);
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -49,7 +62,7 @@ export default function FoundItemsPage() {
           .select(
             "id, item_name, item_type, description, color, date_found, location, status, photo_url, returned_by",
           )
-          .neq("status", "Rejected");
+          .eq("status", "Approved");
         if (error) {
           setDbError(error.message);
         } else {
@@ -66,7 +79,7 @@ export default function FoundItemsPage() {
 
   const searchedItems = linearSearch(items, searchTerm);
 
-  const handleViewDetails = (item) => {
+  const handleViewDetails = (item: FoundItemRecord) => {
     setSelectedItem(item);
   };
 
@@ -211,7 +224,7 @@ export default function FoundItemsPage() {
                 <div className="mt-3 flex items-center gap-2">
                   <span
                     className="inline-block h-3 w-3 rounded-full"
-                    style={{ backgroundColor: item.color || "#94a3b8" }}
+                    style={{ backgroundColor: item.color ?? "#94a3b8" }}
                   />
                   <span className="text-xs text-slate-400">{item.color}</span>
                 </div>
@@ -254,7 +267,7 @@ export default function FoundItemsPage() {
             {selectedItem.photo_url && (
               <img
                 src={selectedItem.photo_url}
-                alt={selectedItem.item_name}
+                alt={selectedItem.item_name ?? "Found item"}
                 className="mb-6 max-h-64 w-full rounded-xl object-contain"
               />
             )}

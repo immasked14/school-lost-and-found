@@ -3,12 +3,13 @@
 import { useState, useRef } from "react";
 import Link from "next/link";
 import { supabase } from "../../lib/supabase";
+import { getCurrentProfile } from "../../lib/profile";
 
 export default function ReportLostPage() {
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [photo, setPhoto] = useState(null);
+  const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState("");
   const photoInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
@@ -47,7 +48,15 @@ export default function ReportLostPage() {
     setIsLoading(true);
     setError("");
 
+    const profile = await getCurrentProfile();
+    if (!profile.isAuthenticated || !profile.userId) {
+      setError("You must be logged in to submit a report.");
+      setIsLoading(false);
+      return;
+    }
+
     const { error: dbError } = await supabase.from("lost_items").insert({
+      user_id: profile.userId,
       item_name: form.itemName,
       item_type: form.itemType,
       color: form.color,
